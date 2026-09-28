@@ -1,4 +1,10 @@
 {
+  "identity": {
+    "manufacturer": "DumboRC",
+    "model": "DRO1",
+    "usb_manufacturer": "DUMBORC",
+    "usb_product": "DRO1"
+  },
   "adc_inputs": {
     "adcs": [
       {
