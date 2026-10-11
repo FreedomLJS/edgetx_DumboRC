@@ -22,6 +22,7 @@
 #include "debug.h"
 #include "etx_lv_theme.h"
 #include "form.h"
+#include "keyboard_base.h"
 #include "keys.h"
 #include "pagegroup.h"
 #include "static.h"
@@ -164,30 +165,40 @@ void Window::eventHandler(lv_event_t *e)
 {
   static bool _longPressed = false;
 
-  lv_obj_t *target = lv_event_get_target(e);
   lv_event_code_t code = lv_event_get_code(e);
 
   if (code == LV_EVENT_DELETE || deleted()) return;
 
-  if (customEventHandler(code)) return;
+  if (customEventHandler(code, e)) return;
 
   switch (code) {
     case LV_EVENT_SCROLL: {
+      lv_obj_t *target = lv_event_get_target(e);
       // exclude pointer based scrolling (only focus scrolling)
       if (!lv_obj_is_scrolling(target) && ((windowFlags & NO_FORCED_SCROLL) == 0)) {
         lv_point_t *p = (lv_point_t *)lv_event_get_param(e);
         lv_coord_t scroll_y = lv_obj_get_scroll_y(target);
         lv_coord_t scroll_bottom = lv_obj_get_scroll_bottom(target);
 
-        TRACE("SCROLL[x=%d;y=%d;top=%d;bottom=%d]", p->x, p->y, scroll_y,
-              scroll_bottom);
-
         // Force scroll to top or bottom when near either edge.
         // Only applies when using rotary encoder or keys.
-        if (scroll_y <= EdgeTxStyles::UI_ELEMENT_HEIGHT * 2 && p->y > 0) {
-          lv_obj_scroll_by(target, 0, scroll_y, LV_ANIM_OFF);
-        } else if (scroll_bottom <= EdgeTxStyles::UI_ELEMENT_HEIGHT * 2 && p->y < 0) {
-          lv_obj_scroll_by(target, 0, -scroll_bottom, LV_ANIM_OFF);
+        // Limit is 2 standard size labels with some extra padding
+        constexpr lv_coord_t NEAR_LIMIT =
+            (EdgeTxStyles::STD_FONT_HEIGHT + PAD_TINY * 2 + PAD_OUTLINE * 2) * 2 + PAD_MEDIUM * 2;
+
+        TRACE("SCROLL[x=%d;y=%d;top=%d;bottom=%d,limit=%d]", p->x, p->y, scroll_y,
+              scroll_bottom,NEAR_LIMIT);
+
+        lv_coord_t scroll_by = 0;
+        if (scroll_y > 0 && scroll_y <= NEAR_LIMIT && p->y > 0) {
+          scroll_by = scroll_y;
+        } else if (scroll_bottom > 0 && scroll_bottom <= NEAR_LIMIT && p->y < 0) {
+          scroll_by = -scroll_bottom;
+        }
+        if (scroll_by != 0) {
+          lv_obj_scroll_by(target, 0, scroll_by, LV_ANIM_OFF);
+          // Don't call scrollHandler until next update
+          return;
         }
       }
 
@@ -199,6 +210,9 @@ void Window::eventHandler(lv_event_t *e)
     case LV_EVENT_CLICKED:
       if (!_longPressed) {
         TRACE("CLICKED[%p]", this);
+        // Close keyboard when clicking outside edit / keyboard windows
+        if (!isEditWindow())
+          Keyboard::hideKeyboard();
         onClicked();
       }
       _longPressed = false;
@@ -223,13 +237,6 @@ void Window::eventHandler(lv_event_t *e)
 }
 
 //-----------------------------------------------------------------------------
-
-// Constructor to allow lvobj to be created separately - used by NumberEdit and
-// TextEdit
-Window::Window(const rect_t &rect) : rect(rect), parent(nullptr)
-{
-  lvobj = nullptr;
-}
 
 Window::Window(Window *parent, const rect_t &rect, LvglCreate objConstruct) :
     rect(rect), parent(parent)
@@ -326,13 +333,6 @@ void Window::assignLvGroup(lv_group_t* g, bool setDefault)
     lv_indev_set_group(indev, g);
     indev = lv_indev_get_next(indev);
   }
-}
-
-Window *Window::getFullScreenWindow()
-{
-  if (width() == LCD_W && height() == LCD_H) return this;
-  if (parent) return parent->getFullScreenWindow();
-  return nullptr;
 }
 
 void Window::setWindowFlag(WindowFlags flag)
@@ -641,7 +641,7 @@ NavWindow::NavWindow(Window *parent, const rect_t &rect,
                      LvglCreate objConstruct) :
     Window(parent, rect, objConstruct)
 {
-  setWindowFlag(OPAQUE);
+  setWindowFlag(OPAQUE | IS_NAV_WINDOW);
 }
 
 #if defined(HARDWARE_KEYS)

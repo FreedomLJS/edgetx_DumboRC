@@ -19,7 +19,7 @@ set(STORAGE_MODELSLIST YES)
 set(HAPTIC YES)
 set(GUI_DIR colorlcd)
 set(BITMAPS_DIR 320x240)
-set(TARGET_DIR v12)
+set(TARGET_DIR hrs/v12)
 set(RTC_BACKUP_RAM YES)
 set(PPM_LIMITS_SYMETRICAL YES)
 set(USB_SERIAL ON CACHE BOOL "Enable USB serial (CDC)")
@@ -45,6 +45,7 @@ add_definitions(-DFIRMWARE_QSPI)
 add_definitions(-DFIRMWARE_FORMAT_UF2)
 add_definitions(-DUSE_CUSTOM_EXTI_IRQ)
 add_definitions(-DUSB_CHARGER)
+add_definitions(-DSTATUS_LED_PWM)
 
 set(FLAVOUR v12)
 
@@ -64,14 +65,14 @@ set(FLYSKY_GIMBAL OFF)
 add_definitions(
   -DSTM32H750XBTx -DSTM32H750xx
   -DSDRAM -DCCMRAM
-  -DCOLORLCD -DLIBOPENUI
   -DHARDWARE_KEYS -DSOFTWARE_KEYBOARD
   -DINTERNAL_EXTERNAL_ANT
 )
 
 set(SDRAM ON)
 
-set(AUX_SERIAL OFF CACHE BOOL "AUX serial port" FORCE)
+# UART4 on the internal 3-pin header (no switchable power rail)
+set(AUX_SERIAL YES)
 
 # Handset supports external antenna selection via hardware GPIO switch
 set(EXTERNAL_ANTENNA ON)
@@ -171,7 +172,7 @@ include_directories(${RADIO_SRC_DIR}/fonts/colorlcd gui/${GUI_DIR} gui/${GUI_DIR
 if(BOOTLOADER)
   set(FIRMWARE_TARGET_SRC
     ${FIRMWARE_TARGET_SRC}
-    ../../bootloader/loadboot.cpp
+    ../../../bootloader/loadboot.cpp
     )
 endif()
 

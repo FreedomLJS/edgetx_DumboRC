@@ -146,6 +146,7 @@ Delete LVGL objects.
 
 @notice If `parent` is not set, the entire script UI is deleted -- use this when the UI changes dramatically (e.g. widget size changes).
 @notice If `parent` is set, only its child LVGL objects are deleted -- use this to remove and replace a specific set of objects.
+@notice Do not call from inside a callback (e.g. `set`, `edited`, `press`). Callbacks can run while EdgeTX is still processing a touch or focus change, and deleting objects at that point can crash the radio. Update the script's state in the callback, then clear and rebuild the UI from `run()` (One-Time scripts) or `update()` (widgets).
 
 @status current Introduced in 2.11.0
 */
@@ -595,6 +596,26 @@ static int luaLvglGetScrollPos(lua_State *L)
   return 0;
 }
 
+/*luadoc
+@function lvgl.getPerf()
+
+Get the UI rendering rate and load, the same figures as the `UI_PERF_MONITOR` overlay, without drawing anything on screen.
+
+@retval fps,taskload (integers) `fps` is the LVGL render rate averaged over 300 ms, capped at the display refresh rate (about 33); frames that redraw 5000 pixels or fewer are not counted, so a static screen reports the cap. `taskload` is the percentage of time spent in LVGL's timer handler (rendering, including `lcd` drawing), averaged over 500 ms.
+
+@notice `taskload` does not include time spent in a widget's `refresh()`, the mixer or other tasks, so it is not the total CPU load.
+
+@status current Introduced in 3.0.0
+*/
+static int luaLvglGetPerf(lua_State *L)
+{
+  uint32_t fps, taskload;
+  lcdGetPerfStats(fps, taskload);
+  lua_pushinteger(L, fps);
+  lua_pushinteger(L, taskload);
+  return 2;
+}
+
 extern "C" {
 // lvgl functions
 LROT_BEGIN(lvgllib, NULL, 0)
@@ -604,6 +625,7 @@ LROT_BEGIN(lvgllib, NULL, 0)
   LROT_FUNCENTRY(isFullScreen, luaLvglIsFullscreen)
   LROT_FUNCENTRY(exitFullScreen, luaLvglExitFullscreen)
   LROT_FUNCENTRY(getContext, luaLvglGetContext)
+  LROT_FUNCENTRY(getPerf, luaLvglGetPerf)
   /*luadoc
   @common lvgl_object
 

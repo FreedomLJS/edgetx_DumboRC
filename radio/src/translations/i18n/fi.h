@@ -365,6 +365,8 @@
 
 
 #define TR_SRC_BATT                    "Batt"
+#define TR_SRC_BAT_CURRENT             "BatI"
+#define TR_SRC_BAT_POWER               "BatP"
 #define TR_SRC_TIME                    "Time"
 #define TR_SRC_GPS                     "GPS"
 #define	TR_SRC_LIGHT                   "Ambient light"
@@ -556,6 +558,13 @@
 #define TR_BEEPCOUNTDOWN               "Countdown"
 #define TR_PERSISTENT                  TR("Persist.", "Persistent")
 #define TR_BACKLIGHT_LABEL             "Backlight"
+#define TR_STATUS_LED                  "Tilan LED"
+#define TR_STATUS_LED_ERROR            "Virhe"
+#define TR_STATUS_LED_READY            "Valmis"
+#define TR_STATUS_LED_EMIT             "Lähettää"
+#define TR_STATUS_LED_COLORS_1         "Punainen"
+#define TR_STATUS_LED_COLORS_2         "Vihreä"
+#define TR_STATUS_LED_COLORS_3         "Sininen"
 #define TR_STATUS                      "Status"
 #define TR_BLONBRIGHTNESS              "ON Brightness"
 #define TR_BLOFFBRIGHTNESS             "OFF Brightness"

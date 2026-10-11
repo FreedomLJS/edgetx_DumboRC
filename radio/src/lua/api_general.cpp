@@ -27,11 +27,13 @@
 #include "stamp.h"
 #include "lua_api.h"
 #include "api_filesystem.h"
+#include "lib_file.h"
 #include "hal/module_port.h"
 #include "hal/adc_driver.h"
 #include "hal/rotary_encoder.h"
 #include "switches.h"
 #include "input_mapping.h"
+#include "os/task.h"
 #if defined(LED_STRIP_GPIO)
 #include "boards/generic_stm32/rgb_leds.h"
 #include "hal/rgbleds.h"
@@ -347,6 +349,14 @@ void luaGetValueAndPush(lua_State* L, int src)
   else if (src == MIXSRC_TX_VOLTAGE) {
     lua_pushnumber(L, float(value) * 0.1f);
   }
+#if defined(MODULE_BATTERY_SENSOR)
+  else if (src == MIXSRC_TX_BAT_CURRENT) {
+    lua_pushnumber(L, float(value) * 0.1f);
+  }
+  else if (src == MIXSRC_TX_BAT_POWER) {
+    lua_pushnumber(L, float(value) * 0.01f);
+  }
+#endif
   #if defined(GVARS)
   else if(src >= MIXSRC_FIRST_GVAR && src <= MIXSRC_LAST_GVAR) {
    if(g_model.gvars[src - MIXSRC_FIRST_GVAR].prec)
@@ -376,6 +386,11 @@ const LuaSingleField luaSingleFields[] = {
     {MIXSRC_LIGHT, "light", "Light Sensor"},
 #endif
 
+#if defined(VOICE_CONTROL_SENSOR)
+    {MIXSRC_VGR, "vgr", "Voice control gear"},
+    {MIXSRC_VFL, "vfl", "Voice control flaps"},
+#endif
+
 #if defined(PCBHORUS)
     {MIXSRC_SPACEMOUSE_A, "sma", "SpaceMouse A"},
     {MIXSRC_SPACEMOUSE_B, "smb", "SpaceMouse B"},
@@ -389,6 +404,10 @@ const LuaSingleField luaSingleFields[] = {
     {MIXSRC_MAX, "max", "MAX"},
 
     {MIXSRC_TX_VOLTAGE, "tx-voltage", "Transmitter battery voltage [volts]"},
+#if defined(MODULE_BATTERY_SENSOR)
+    {MIXSRC_TX_BAT_CURRENT, "tx-current", "Transmitter battery current [amps]"},
+    {MIXSRC_TX_BAT_POWER, "tx-power", "Transmitter battery power [watts]"},
+#endif
     {MIXSRC_TX_TIME, "clock", "RTC clock [minutes from midnight]"},
 };
 
@@ -453,8 +472,9 @@ bool luaFindFieldByName(const char * name, LuaField & field, unsigned int flags)
   if (_searchSingleFieldsByName(name, field, flags, luaSingleFields, DIM(luaSingleFields)))
     return true;
 
+  // Switches by hardware name ('SA', 'SW1', ...) are found in _lua_inputs.
+
   // check switches from 'sa' to 'sz'
-  // TODO: does not work with function switches!
   if (len == 2 && name[0] == 's' && name[1] >= 'a' && name[1] <= 'z') {
     auto c = name[1] - 'a' + 'A';
     auto sw_idx = switchLookupIdx(c);
@@ -469,7 +489,7 @@ bool luaFindFieldByName(const char * name, LuaField & field, unsigned int flags)
       return true;
     }
   }
-  
+
   // search in multiples
   for (unsigned int n=0; n<DIM(luaMultipleFields); ++n) {
     const char * fieldName = luaMultipleFields[n].name;
@@ -531,6 +551,25 @@ bool luaFindFieldByName(const char * name, LuaField & field, unsigned int flags)
     }
   }
 
+  // Last resort: any switch by its default name, in upper or lower case.
+  // This also finds switches that are not in _lua_inputs, e.g. flex
+  // switches ('FL1'). It is checked last so it never changes what an
+  // existing field name finds.
+  char swName[8];
+  if (len < sizeof(swName)) {
+    for (size_t i = 0; i <= len; i++) swName[i] = toupper(name[i]);
+    auto sw_idx = switchLookupIdx(swName, len);
+    if (sw_idx >= 0) {
+      field.id = MIXSRC_FIRST_SWITCH + sw_idx;
+      if (flags & FIND_FIELD_DESC) {
+        snprintf(field.desc, sizeof(field.desc), "Switch %s", swName);
+      } else {
+        field.desc[0] = '\0';
+      }
+      return true;
+    }
+  }
+
   return false;  // not found
 }
 
@@ -566,6 +605,18 @@ bool luaFindFieldById(int id, LuaField & field, unsigned int flags)
   // well known single fields
   if (_searchSingleFieldsById(id, field, flags, luaSingleFields, DIM(luaSingleFields)))
     return true;
+
+  // switches that are not in _lua_inputs, e.g. flex switches
+  if (id >= MIXSRC_FIRST_SWITCH &&
+      id < MIXSRC_FIRST_SWITCH + switchGetMaxAllSwitches()) {
+    const char* swName = switchGetDefaultName(id - MIXSRC_FIRST_SWITCH);
+    if (swName) {
+      strAppend(field.name, swName, sizeof(field.name) - 1);
+      if (flags & FIND_FIELD_DESC)
+        snprintf(field.desc, sizeof(field.desc), "Switch %s", swName);
+      return true;
+    }
+  }
 
   // search in telemetry for configured sensor
   if (id >= MIXSRC_FIRST_TELEM && id <= MIXSRC_LAST_TELEM) {
@@ -629,7 +680,7 @@ The list of valid sources is available:
 
 @retval nil the requested field was not found
 
-@status current Introduced in 2.0.8, 'unit' field added in 2.2.0, and argument also can be an index number as of 2.6.0
+@status current Introduced in 2.0.8, 'unit' field added in 2.2.0, and argument also can be an index number as of 2.6.0, lower case switch names and flex/voice switches added in 3.0
 */
 static int luaGetFieldInfo(lua_State * L)
 {
@@ -847,6 +898,13 @@ static int luaGetSourceValue(lua_State * L)
     lua_pushboolean(L, true);
     lua_pushboolean(L, true);
   }
+#if defined(MODULE_BATTERY_SENSOR)
+  else if (src == MIXSRC_TX_BAT_CURRENT || src == MIXSRC_TX_BAT_POWER) {
+    lua_pushnumber(L, float(value) * (src == MIXSRC_TX_BAT_CURRENT ? 0.1f : 0.01f));
+    lua_pushboolean(L, true);
+    lua_pushboolean(L, true);
+  }
+#endif
   else {
     lua_pushinteger(L, value);
     lua_pushboolean(L, true);
@@ -1490,17 +1548,21 @@ static int luaPlayFile(lua_State * L)
   if(volume != USE_SETTINGS_VOLUME)
     volume = limit(-2, volume-3, 2);  // (rescale 1..5) to internal format and limit to (-2..2)
 
+  char file[AUDIO_FILENAME_MAXLEN+1];
   if (filename[0] != '/') {
     // relative sound file path - use current language dir for absolute path
-    char file[AUDIO_FILENAME_MAXLEN+1];
     char * str = getAudioPath(file);
     strncpy(str, filename, AUDIO_FILENAME_MAXLEN - (str-file));
     file[AUDIO_FILENAME_MAXLEN] = 0;
-    audioQueue.playFile(file, 0, 0, volume);
   }
   else {
-    audioQueue.playFile(filename, 0, 0, volume);
+    strncpy(file, filename, AUDIO_FILENAME_MAXLEN);
+    file[AUDIO_FILENAME_MAXLEN] = 0;
   }
+  // resolve to an absolute path (works on exFAT)
+  char norm[AUDIO_FILENAME_MAXLEN+1];
+  etxNormalizePath(file, norm, sizeof(norm));
+  audioQueue.playFile(norm, 0, 0, volume);
   return 0;
 }
 
@@ -1788,6 +1850,40 @@ static int luaGetGeneralSettings(lua_State * L)
 #endif
   lua_pushtablestring(L, "voice", currentLanguagePack->id);
   lua_pushtableinteger(L, "gtimer", g_eeGeneral.globalTimer);
+  return 1;
+}
+
+/*luadoc
+@function getTouchEnabled()
+
+Return whether the firmware currently accepts touch input.
+
+This reflects the two firmware gates used by the touch input path: the
+backlight must be on and the Disable touch special function must be inactive.
+While the backlight is off, a touch still wakes the screen, but the touch
+itself is not passed on as input.
+
+@retval boolean `true` when touch input is enabled, `false` when it is disabled
+@retval nil the radio has no touch screen
+
+@status current Introduced in 3.0
+*/
+static int luaGetTouchEnabled(lua_State * L)
+{
+#if defined(HARDWARE_TOUCH)
+#if !defined(SIMU) && defined(TP_GT911)
+  // touch panel is optional on some boards (e.g. X10 / X12S)
+  if (!HAS_TOUCH_PANEL()) {
+    lua_pushnil(L);
+    return 1;
+  }
+#endif
+  const bool enabled =
+      isBacklightEnabled() && !isFunctionActive(FUNCTION_DISABLE_TOUCH);
+  lua_pushboolean(L, enabled);
+#else
+  lua_pushnil(L);
+#endif
   return 1;
 }
 
@@ -2243,6 +2339,27 @@ static int luaGetAvailableMemory(lua_State * L)
 }
 
 /*luadoc
+@function getCpuLoad()
+
+Get the CPU load: the share of time the processor was not running the idle task.
+
+@retval load (number) a value from 0 to 100 (percent), averaged over the last 500 ms or more (since the previous update); nil in the simulator
+
+@notice Interrupts are counted against the task they interrupt, so interrupts that occur while the CPU is idle count as idle time.
+
+@status current Introduced in 3.0.0
+*/
+static int luaGetCpuLoad(lua_State * L)
+{
+  int load = task_get_cpu_load();
+  if (load < 0)
+    lua_pushnil(L);
+  else
+    lua_pushinteger(L, load);
+  return 1;
+}
+
+/*luadoc
 @function resetGlobalTimer([type])
 
  Resets the radio global timer to 0.
@@ -2410,6 +2527,13 @@ static int luaSerialRead(lua_State * L)
 }
 
 #if defined(SWSERIALPOWER) && !defined(SIMU)
+// Only ports with a switchable power rail can report or change power state
+static bool luaSerialHasPowerCtrl(uint8_t port_nr)
+{
+  auto port = serialGetPort(port_nr);
+  return port && port->set_pwr;
+}
+
 /*luadoc
 @function serialGetPower(port_nr)
 
@@ -2428,22 +2552,10 @@ static int luaSerialGetPower(lua_State* L)
 {
   uint8_t port_nr = luaL_checkinteger(L, 1) & 0x3;
 
-  #if defined(AUX_SERIAL)
-    if (port_nr == SP_AUX1)
-    {
-      bool res = serialGetPower(SP_AUX1);
-      lua_pushboolean(L, res);
-      return 1;
-    }
-  #endif
-  #if defined(AUX2_SERIAL)
-    if (port_nr == SP_AUX2)
-    {
-      bool res = serialGetPower(SP_AUX2);
-      lua_pushboolean(L, res);
-      return 1;
-    }
-  #endif
+  if (luaSerialHasPowerCtrl(port_nr)) {
+    lua_pushboolean(L, serialGetPower(port_nr));
+    return 1;
+  }
   return 0;
 }
 
@@ -2467,24 +2579,10 @@ static int luaSerialSetPower(lua_State* L)
   uint8_t port_nr = luaL_checkinteger(L, 1) & 0x3;
   uint8_t value = luaL_checkinteger(L, 2) & 0x3;
 
-  if (value < 2)
-  {
-  #if defined(AUX_SERIAL)
-    if (port_nr == SP_AUX1)
-    {
-      serialSetPower(SP_AUX1, value);
-      lua_pushboolean(L, true);
-      return 1;
-    }
-  #endif
-  #if defined(AUX2_SERIAL)
-    if (port_nr == SP_AUX2)
-    {
-      serialSetPower(SP_AUX2, value);
-      lua_pushboolean(L, true);
-      return 1;
-    }
-  #endif
+  if (value < 2 && luaSerialHasPowerCtrl(port_nr)) {
+    serialSetPower(port_nr, value);
+    lua_pushboolean(L, true);
+    return 1;
   }
   lua_pushboolean(L, false);
   return 1;
@@ -2606,7 +2704,9 @@ static int luaGetLogicalSwitchValue(lua_State * L)
 /*luadoc
 @function getSwitchInfo(sourceIndex)
 
-@param sourceIndex: integer identifying a value source as returned by `getSourceIndex(sourceName)` or the `id` field in the table returned by `getFieldInfo`.
+@param sourceIndex: integer identifying a switch source, e.g. `MIXSRC_SA`, `getSourceIndex("SA")` or the `id` field in the table returned by `getFieldInfo("sa")`. This is not a switch position index as returned by `getSwitchIndex()`.
+
+@retval nil sourceIndex is not a switch source
 
 @retval table information about requested field, table elements:
 * `type`   (number) field identifier
@@ -2618,17 +2718,19 @@ static int luaGetLogicalSwitchValue(lua_State * L)
 * `isCustomisableSwitch`   (boolean) field identifier
 return true if switch is a customisable switch
 
-* `name` (string) switch name
+* `name` (string) switch name as shown on the radio, including a custom name. Use `getFieldInfo(sourceIndex).name` for the default name.
 
-@status current Introduced in 2.12
+@status current Introduced in 2.12, name fixed and retval nil added in 3.0
 */
 
 static int luaGetSwitchInfo(lua_State * L)
 {
-  swsrc_t idx = luaL_checkinteger(L, 1) - MIXSRC_FIRST_SWITCH;
-  if (idx < SWSRC_COUNT && isSwitchAvailable(idx, ModelCustomFunctionsContext)) {
+  // idx is a physical switch number, not a switch position (SWSRC_xxx)
+  lua_Integer idx = luaL_checkinteger(L, 1) - MIXSRC_FIRST_SWITCH;
+  if (idx >= 0 && idx < switchGetMaxAllSwitches()) {
     lua_newtable(L);
-    char* name = getSwitchPositionName(idx);
+    char name[LEN_SWITCH_NAME + 1];
+    getSwitchName(name, idx);
     lua_pushtableinteger(L, "type", g_model.getSwitchType(idx));
     lua_pushtableboolean(L, "isCustomisableSwitch", switchIsCustomSwitch(idx));
     lua_pushtablestring(L, "name", name);
@@ -3132,6 +3234,7 @@ LROT_BEGIN(etxlib, NULL, 0)
 #endif
   LROT_FUNCENTRY( getVersion, luaGetVersion )
   LROT_FUNCENTRY( getGeneralSettings, luaGetGeneralSettings )
+  LROT_FUNCENTRY( getTouchEnabled, luaGetTouchEnabled )
   LROT_FUNCENTRY( getGlobalTimer, luaGetGlobalTimer )
   LROT_FUNCENTRY( getRotEncSpeed, luaGetRotEncSpeed )
   LROT_FUNCENTRY( getRotEncMode, luaGetRotEncMode )
@@ -3163,6 +3266,7 @@ LROT_BEGIN(etxlib, NULL, 0)
   LROT_FUNCENTRY( loadScript, luaLoadScript )
   LROT_FUNCENTRY( getUsage, luaGetUsage )
   LROT_FUNCENTRY( getAvailableMemory, luaGetAvailableMemory )
+  LROT_FUNCENTRY( getCpuLoad, luaGetCpuLoad )
   LROT_FUNCENTRY( resetGlobalTimer, luaResetGlobalTimer )
 #if LCD_DEPTH > 1 && !defined(COLORLCD)
   LROT_FUNCENTRY( GREY, luaGrey )

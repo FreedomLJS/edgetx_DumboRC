@@ -364,6 +364,8 @@
 #define TR_CYC_VSRCRAW_3            "사이클릭3"
 
 #define TR_SRC_BATT                   "배터리"
+#define TR_SRC_BAT_CURRENT            "BatI"
+#define TR_SRC_BAT_POWER              "BatP"
 #define TR_SRC_TIME                   "시간"
 #define TR_SRC_GPS                    "GPS"
 #define	TR_SRC_LIGHT                  "Ambient light"
@@ -566,6 +568,13 @@
 #define TR_PERSISTENT                   TR("유지", "값 유지")
 
 #define TR_BACKLIGHT_LABEL              "백라이트"
+#define TR_STATUS_LED                   "상태 LED"
+#define TR_STATUS_LED_ERROR             "오류"
+#define TR_STATUS_LED_READY             "준비됨"
+#define TR_STATUS_LED_EMIT              "송신 중"
+#define TR_STATUS_LED_COLORS_1          "빨강"
+#define TR_STATUS_LED_COLORS_2          "초록"
+#define TR_STATUS_LED_COLORS_3          "파랑"
 #define TR_STATUS                       "상태"
 #define TR_BLONBRIGHTNESS               "켜짐 밝기"
 #define TR_BLOFFBRIGHTNESS              "꺼짐 밝기"

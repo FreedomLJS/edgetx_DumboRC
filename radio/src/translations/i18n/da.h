@@ -368,6 +368,8 @@
 #define TR_CYC_VSRCRAW_3               "CYC3"
 
 #define TR_SRC_BATT                    "Bat."
+#define TR_SRC_BAT_CURRENT             "BatI"
+#define TR_SRC_BAT_POWER               "BatP"
 #define TR_SRC_TIME                    "Time"
 #define TR_SRC_GPS                     "GPS"
 #define	TR_SRC_LIGHT                   "Ambient lys"
@@ -561,6 +563,13 @@
 #define TR_BEEPCOUNTDOWN               "Nedtælling"
 #define TR_PERSISTENT                  TR("Varig", "Varig")
 #define TR_BACKLIGHT_LABEL             "Baggrunds lys"
+#define TR_STATUS_LED                  "Status-LED"
+#define TR_STATUS_LED_ERROR            "Fejl"
+#define TR_STATUS_LED_READY            "Klar"
+#define TR_STATUS_LED_EMIT             "Sender"
+#define TR_STATUS_LED_COLORS_1         "Rød"
+#define TR_STATUS_LED_COLORS_2         "Grøn"
+#define TR_STATUS_LED_COLORS_3         "Blå"
 #define TR_STATUS                      "Status"
 #define TR_BLONBRIGHTNESS              "TIL klarhed"
 #define TR_BLOFFBRIGHTNESS             "FRA klarhed"

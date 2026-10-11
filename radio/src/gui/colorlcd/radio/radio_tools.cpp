@@ -50,7 +50,7 @@ static void run_lua_tool(const std::string& path)
   char toolPath[FF_MAX_LFN + 1];
   strncpy(toolPath, path.c_str(), sizeof(toolPath) - 1);
   *((char*)getBasename(toolPath) - 1) = '\0';
-  f_chdir(toolPath);
+  etxChdir(toolPath);
 
   luaExecStandalone(path.c_str());
 }
@@ -288,6 +288,8 @@ void RadioToolsPage::checkEvents()
   PageGroupItem::checkEvents();
 }
 
+__attribute__((weak)) void customUITools(std::list<ToolEntry>& tools) {}
+
 void RadioToolsPage::rebuild(Window* window)
 {
   window->clear();
@@ -364,6 +366,9 @@ void RadioToolsPage::rebuild(Window* window)
 #if defined(LUA)
   scanLuaTools(tools);
 #endif
+
+  // Radio specific tools
+  customUITools(tools);
 
   tools.sort(tool_compare_nocase);
 

@@ -55,6 +55,9 @@ bool hpDetected = false;
 
 uint8_t currentBacklightBright = 0;
 uint8_t requiredBacklightBright = 0;
+#if defined(STATUS_LED_PWM)
+uint8_t requiredStatusLedBright = STATUS_LED_BRIGHT_MAX;
+#endif
 
 static bool _usbDisabled = false;
 
@@ -551,6 +554,8 @@ void guiMain(event_t evt)
 // from logs.cpp
 void initLoggingTimer();
 
+__attribute__((weak)) void customUIActions() {}
+
 void perMain()
 {
   DEBUG_TIMER_START(debugTimerPerMain1);
@@ -573,6 +578,9 @@ void perMain()
   DEBUG_TIMER_STOP(debugTimerPerMain1);
 
   checkBacklight();
+#if defined(STATUS_LED_COLORS)
+  checkStatusLed();
+#endif
 
 #if defined(USE_HATS_AS_KEYS)
   checkHatsAsKeys();
@@ -637,6 +645,10 @@ void perMain()
 #if defined(GUI)
   DEBUG_TIMER_START(debugTimerGuiMain);
 #if defined(COLORLCD)
+
+  // Radio specific UI actions
+  customUIActions();
+
   guiMain(0);
 #else
   guiMain(evt);

@@ -366,6 +366,8 @@
 #define TR_CYC_VSRCRAW_3             "CYC3"
 
 #define TR_SRC_BATT                    "Batt"
+#define TR_SRC_BAT_CURRENT             "BatI"
+#define TR_SRC_BAT_POWER               "BatP"
 #define TR_SRC_TIME                    "Time"
 #define TR_SRC_GPS                     "GPS"
 #define	TR_SRC_LIGHT                   "Ambient light"
@@ -556,6 +558,13 @@
 #define TR_BEEPCOUNTDOWN               "倒数"
 #define TR_PERSISTENT                  TR("关机保持", "关机保持")
 #define TR_BACKLIGHT_LABEL             "背光"
+#define TR_STATUS_LED                  "状态指示灯"
+#define TR_STATUS_LED_ERROR            "错误"
+#define TR_STATUS_LED_READY            "就绪"
+#define TR_STATUS_LED_EMIT             "发射中"
+#define TR_STATUS_LED_COLORS_1         "红色"
+#define TR_STATUS_LED_COLORS_2         "绿色"
+#define TR_STATUS_LED_COLORS_3         "蓝色"
 #define TR_STATUS                      "状态"
 #define TR_BLONBRIGHTNESS              "背光开"
 #define TR_BLOFFBRIGHTNESS             "背光关"

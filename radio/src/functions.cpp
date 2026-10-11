@@ -109,6 +109,13 @@ PLAY_FUNCTION(playValue, mixsrc_t idx)
     PLAY_DURATION(val * 60, PLAY_TIME);
   } else if (idx == MIXSRC_TX_VOLTAGE) {
     PLAY_NUMBER(val, UNIT_VOLTS, PREC1);
+#if defined(MODULE_BATTERY_SENSOR)
+  } else if (idx == MIXSRC_TX_BAT_CURRENT) {
+    PLAY_NUMBER(val, UNIT_AMPS, PREC1);
+  } else if (idx == MIXSRC_TX_BAT_POWER) {
+    int32_t wattsDeci = (val >= 0) ? (val + 5) / 10 : (val - 5) / 10;
+    PLAY_NUMBER(wattsDeci, UNIT_WATTS, PREC1);
+#endif
 #if defined(LUMINOSITY_SENSOR)
   } else if (idx == MIXSRC_LIGHT) {
     PLAY_NUMBER(val, UNIT_RAW, 0);
@@ -608,6 +615,16 @@ void evalUIFunctions(CustomFunctionData * functions, CustomFunctionsContext & fu
       requiredSpeakerVolume =
           limit<int>(0, g_eeGeneral.speakerVolume + VOLUME_LEVEL_DEF, VOLUME_LEVEL_MAX);
     }
+  }
+#endif
+
+#if defined(STATUS_LED_PWM)
+  if (g_eeGeneral.statusLedSrc && mixerTaskRunning()) {
+    calcStatusLedBright(g_eeGeneral.statusLedSrc);
+  } else {
+    requiredStatusLedBright =
+        STATUS_LED_BRIGHT_MAX - limit<int>(0, (int)g_eeGeneral.statusLedDim,
+                                           STATUS_LED_BRIGHT_MAX);
   }
 #endif
 }

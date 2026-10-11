@@ -931,6 +931,8 @@
 #define STR_SPLASHSCREEN currentLangStrings->STR_SPLASHSCREEN
 #define STR_SPORT_UPDATE_POWER_MODE currentLangStrings->STR_SPORT_UPDATE_POWER_MODE
 #define STR_SRC_BATT currentLangStrings->STR_SRC_BATT
+#define STR_SRC_BAT_CURRENT currentLangStrings->STR_SRC_BAT_CURRENT
+#define STR_SRC_BAT_POWER currentLangStrings->STR_SRC_BAT_POWER
 #define STR_SRC_GPS currentLangStrings->STR_SRC_GPS
 #define STR_SRC_LIGHT currentLangStrings->STR_SRC_LIGHT
 #define STR_SRC_TIME currentLangStrings->STR_SRC_TIME
@@ -941,6 +943,11 @@
 #define STR_START currentLangStrings->STR_START
 #define STR_STATISTICS currentLangStrings->STR_STATISTICS
 #define STR_STATUS currentLangStrings->STR_STATUS
+#define STR_STATUS_LED currentLangStrings->STR_STATUS_LED
+#define STR_STATUS_LED_ERROR currentLangStrings->STR_STATUS_LED_ERROR
+#define STR_STATUS_LED_READY currentLangStrings->STR_STATUS_LED_READY
+#define STR_STATUS_LED_EMIT currentLangStrings->STR_STATUS_LED_EMIT
+#define STR_STATUS_LED_COLORS currentLangStrings->STR_STATUS_LED_COLORS
 #define STR_STICK_NAMES0 currentLangStrings->STR_STICK_NAMES0
 #define STR_STICK_NAMES1 currentLangStrings->STR_STICK_NAMES1
 #define STR_STICK_NAMES2 currentLangStrings->STR_STICK_NAMES2

@@ -365,6 +365,8 @@
 #define TR_CYC_VSRCRAW_3             "CYC3"
 
 #define TR_SRC_BATT                    "Batt"
+#define TR_SRC_BAT_CURRENT             "BatI"
+#define TR_SRC_BAT_POWER               "BatP"
 #define TR_SRC_TIME                    "Time"
 #define TR_SRC_GPS                     "GPS"
 #define	TR_SRC_LIGHT                   "Ambient light"
@@ -556,6 +558,13 @@
 #define TR_BEEPCOUNTDOWN               "カウントダウン"
 #define TR_PERSISTENT                  TR("Persist.", "持続設定")
 #define TR_BACKLIGHT_LABEL             "バックライト"
+#define TR_STATUS_LED                  "ステータスLED"
+#define TR_STATUS_LED_ERROR            "エラー"
+#define TR_STATUS_LED_READY            "準備完了"
+#define TR_STATUS_LED_EMIT             "送信中"
+#define TR_STATUS_LED_COLORS_1         "赤"
+#define TR_STATUS_LED_COLORS_2         "緑"
+#define TR_STATUS_LED_COLORS_3         "青"
 #define TR_STATUS                      "ステータス"
 #define TR_BLONBRIGHTNESS              "バックライトON"
 #define TR_BLOFFBRIGHTNESS             "バックライトOFF"

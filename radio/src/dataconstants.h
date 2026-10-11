@@ -560,6 +560,10 @@ enum MixSources {
   MIXSRC_LAST_GVAR SKIP = MIXSRC_FIRST_GVAR + MAX_GVARS - 1,
 
   MIXSRC_TX_VOLTAGE,
+#if defined(MODULE_BATTERY_SENSOR)
+  MIXSRC_TX_BAT_CURRENT,
+  MIXSRC_TX_BAT_POWER,
+#endif
   MIXSRC_TX_TIME,
   MIXSRC_TX_GPS,
 
@@ -707,6 +711,22 @@ enum ModelOverridableEnable {
 #define SELECTED_THEME_NAME_LEN 26
 
 // PPM Units
+// 0 keeps the built-in colour for the phase, so settings written before this
+// existed behave as they always did
+enum StatusLedColor {
+  STATUS_LED_COLOR_DEFAULT,
+  STATUS_LED_COLOR_RED,
+  STATUS_LED_COLOR_GREEN,
+  STATUS_LED_COLOR_BLUE,
+};
+
+enum StatusLedPhase {
+  STATUS_LED_PHASE_BOOT,
+  STATUS_LED_PHASE_ERROR,
+  STATUS_LED_PHASE_READY,
+  STATUS_LED_PHASE_EMIT,
+};
+
 enum PPMUnit {
     PPM_PERCENT_PREC0,
     PPM_PERCENT_PREC1,

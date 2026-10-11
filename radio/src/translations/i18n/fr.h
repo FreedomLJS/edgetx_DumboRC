@@ -368,6 +368,8 @@
 #define TR_CYC_VSRCRAW_3             "CYC3"
 
 #define TR_SRC_BATT                    "Batt"
+#define TR_SRC_BAT_CURRENT             "BatI"
+#define TR_SRC_BAT_POWER               "BatP"
 #define TR_SRC_TIME                    "H_M"
 #define TR_SRC_GPS                     "GPS"
 #define	TR_SRC_LIGHT                   "Ambient light"
@@ -559,6 +561,13 @@
 #define TR_BEEPCOUNTDOWN               TR("Bip fin", "Compte à rebours")
 #define TR_PERSISTENT                  TR("Persist.", "Persistant")
 #define TR_BACKLIGHT_LABEL             "Rétroéclairage"
+#define TR_STATUS_LED                  "LED d'état"
+#define TR_STATUS_LED_ERROR            "Erreur"
+#define TR_STATUS_LED_READY            "Prêt"
+#define TR_STATUS_LED_EMIT             "Émission"
+#define TR_STATUS_LED_COLORS_1         "Rouge"
+#define TR_STATUS_LED_COLORS_2         "Vert"
+#define TR_STATUS_LED_COLORS_3         "Bleu"
 #define TR_STATUS                      "Version"
 #define TR_BLONBRIGHTNESS              "Luminosité ON"
 #define TR_BLOFFBRIGHTNESS             "Luminosité OFF"

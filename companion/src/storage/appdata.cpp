@@ -21,6 +21,7 @@
 
 #include "appdata.h"
 #include "updates/updateoptionsdialog.h"
+#include "eeprominterface.h"
 
 #include <QDateTime>
 #include <QDir>
@@ -963,6 +964,16 @@ void AppData::convertSettings(QSettings & settings)
             newfwOpts = oldparts.mid(2, oldparts.count() - 3).join("-");
             settings.setValue(profilePath.arg(i) % "/fwOptions", newfwOpts);
           }
+
+          // Firmwares are not registered yet when settings are converted, so the language cannot be
+          // checked against the firmware here. The profile settings fall back to a supported
+          // language if the stored one is not, so only fill in a missing language, and never
+          // overwrite one already split out by an earlier conversion.
+          if (newfwLang.isEmpty() && !settings.contains(profilePath.arg(i) % "/fwLanguage")) {
+            newfwLang = "en";
+            settings.setValue(profilePath.arg(i) % "/fwLanguage", newfwLang);
+          }
+
           qInfo().noquote() << "Converted entry" << profileFwTypePath.arg(i)
                             << "from (" << oldValue << ")"
                             << "to (type:" << newfwType << "opts:" << newfwOpts << "lang:" << newfwLang << ")";

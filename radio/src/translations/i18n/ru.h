@@ -368,6 +368,8 @@
 #define TR_CYC_VSRCRAW_3             "CYC3"
 
 #define TR_SRC_BATT                    "АКБ"
+#define TR_SRC_BAT_CURRENT             "BatI"
+#define TR_SRC_BAT_POWER               "BatP"
 #define TR_SRC_TIME                    "Время"
 #define TR_SRC_GPS                     "GPS"
 #define	TR_SRC_LIGHT                   "Ambient light"
@@ -559,6 +561,13 @@
 #define TR_BEEPCOUNTDOWN               "Обр отс"
 #define TR_PERSISTENT                  TR("Пост", "Пост")
 #define TR_BACKLIGHT_LABEL             "Подсветка"
+#define TR_STATUS_LED                  "Светодиод состояния"
+#define TR_STATUS_LED_ERROR            "Ошибка"
+#define TR_STATUS_LED_READY            "Готов"
+#define TR_STATUS_LED_EMIT             "Передача"
+#define TR_STATUS_LED_COLORS_1         "Красный"
+#define TR_STATUS_LED_COLORS_2         "Зелёный"
+#define TR_STATUS_LED_COLORS_3         "Синий"
 #define TR_STATUS                      "Статус"
 #define TR_BLONBRIGHTNESS              "Подсветка Вкл"
 #define TR_BLOFFBRIGHTNESS             "Подсветка Вык"
