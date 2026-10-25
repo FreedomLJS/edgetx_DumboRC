@@ -1522,8 +1522,8 @@ static int luaGetFlightMode(lua_State * L)
 Play a file from the SD card
 
 @param filename (string) full path to wav file (i.e. "/SOUNDS/en/system/tada.wav")
-Introduced in 2.1.0: If you use a relative path, the current language is appended
-to the path (example: for English language: `/SOUNDS/en` is appended)
+Introduced in 2.1.0: If you use a relative path, the current language is prepended
+to the path (example: for English language: `/SOUNDS/en` is prepended)
 
 @param volume (number):
  - (1..5) override radio settings Wav volume for the duration of file
@@ -1536,7 +1536,7 @@ to the path (example: for English language: `/SOUNDS/en` is appended)
 // targets: BW, COLOR
 //
 // EXAMPLES:
-// playFile("armed.wav", 5) -- play file armed.wav, use Wav volume 2
+// playFile("armed.wav", 5) -- play file armed.wav, use Wav volume 5
 // playFile("armed.wav", 1) -- play file armed.wav, use Wav volume 1
 // playFile("armed.wav")		-- play file armed.wav, use radio settings Wav volume
 */
@@ -2128,6 +2128,7 @@ static int luaSetTelemetryValue(lua_State * L)
   int32_t value = luaL_checkinteger(L, 4);
   uint32_t unit = luaL_optinteger(L, 5, 0);
   uint32_t prec = luaL_optinteger(L, 6, 0);
+  if (unit > UNIT_TEXT) unit = UNIT_RAW;  // not a storable sensor unit
 
   char name_buf[TELEM_LABEL_LEN]; // 4
   const char* name = luaL_optstring(L, 7, NULL);
@@ -3019,17 +3020,26 @@ static int luaGetTrainerStatus(lua_State * L)
 
 #if (BLING_LED_STRIP_LENGTH > 0) || (CFS_LED_STRIP_LENGTH > 0)
 /*luadoc
-@function setRGBLedColor(id, rvalue, bvalue, cvalue)
+@function setRGBLedColor(id, rvalue, gvalue, bvalue)
 
-@param id: integer identifying a led in the led chain
+Set the color of a LED, the change is visible after applyRGBLedColors()
 
-@param rvalue: interger, value of red channel
+@param id: integer LED index, 0 to LED_STRIP_LENGTH - 1.
+  Indexes 0 to BLING_LED_STRIP_LENGTH - 1 are the decorative ('bling') LEDs.
+  The remaining indexes are the custom switch LEDs, which can only be set
+  while that custom switch is set to NONE (use setCFSLedColor() for the
+  others). Scripts that only want the decorative LEDs, and still run on older
+  firmware, can loop to `(BLING_LED_STRIP_LENGTH or LED_STRIP_LENGTH) - 1`.
+  See getRGBLedInfo() for how the LEDs are grouped.
 
-@param gvalue: interger, value of green channel
+@param rvalue: integer, value of red channel
 
-@param bvalue: interger, value of blue channel
+@param gvalue: integer, value of green channel
 
-@retval: true if LED index is valid, false otherwise
+@param bvalue: integer, value of blue channel
+
+@retval: true if the LED was set, false if the index is out of range or the
+  LED belongs to a custom switch that is in use
 
 @status current Introduced in 2.10
 */
@@ -3056,12 +3066,14 @@ static int luaSetRgbLedColor(lua_State * L)
   }
   id -= BLING_LED_STRIP_LENGTH;
 #endif
-  uint8_t swIdx = switchGetSwitchFromCustomIdx(id / CFS_LEDS_PER_SWITCH);
-  if (g_model.getSwitchType(swIdx) != SWITCH_NONE) {
+  uint8_t cfsIdx = id / CFS_LEDS_PER_SWITCH;
+  uint8_t swIdx = switchGetSwitchFromCustomIdx(cfsIdx);
+  if (swIdx >= switchGetMaxSwitches() ||
+      g_model.getSwitchType(swIdx) != SWITCH_NONE) {
     lua_pushboolean(L, false);
     return 1;
   }
-  rgbSetLedColor(id + CFS_LED_STRIP_START, r, g, b);
+  rgbSetLedColor(fsLedFirstIndex(cfsIdx) + id % CFS_LEDS_PER_SWITCH, r, g, b);
 #else
   rgbSetLedColor(id + BLING_LED_STRIP_START, r, g, b);
 #endif
@@ -3137,6 +3149,73 @@ static int luaSetCFSLedColor(lua_State * L)
 static int luaApplyRGBLedColors(lua_State * L)
 {
   rgbLedColorApply();
+  return 1;
+}
+
+struct LuaLedGroup {
+  const char* name;
+  uint8_t first;
+  uint8_t count;
+  int16_t startAngle;
+  int8_t direction;  // 0 when the group is not a ring
+};
+
+#include "lua_leds.inc"
+
+/*luadoc
+@function getRGBLedInfo()
+
+Describe the LEDs that setRGBLedColor() can address
+
+@retval table with the following fields:
+ * `length` (number) total number of LEDs, same as LED_STRIP_LENGTH
+ * `bling` (number) number of decorative LEDs, same as BLING_LED_STRIP_LENGTH.
+   They use indexes 0 to `bling` - 1
+ * `cfs` (table) custom switch LEDs, only present if the radio has them:
+   * `first` (number) index of the first custom switch LED
+   * `count` (number) number of custom switch LEDs
+   * `perSwitch` (number) number of LEDs for each custom switch
+ * `groups` (table) groups of decorative LEDs indexed by name
+   (e.g. `gimbal_left`, `gimbal_right`), empty if none are known. Each group has:
+   * `first` (number) index of the first LED of the group
+   * `count` (number) number of LEDs in the group
+   * `startAngle` (number) only for an evenly spaced ring, angle of the
+     first LED in degrees (0 = right, 90 = up)
+   * `direction` (number) only for an evenly spaced ring, 1 if the following
+     LEDs go counter clockwise, -1 if they go clockwise
+
+@status current Introduced in 3.0.0
+*/
+static int luaGetRGBLedInfo(lua_State * L)
+{
+  lua_newtable(L);
+  lua_pushtableinteger(L, "length", BLING_LED_STRIP_LENGTH + CFS_LED_STRIP_LENGTH);
+  lua_pushtableinteger(L, "bling", BLING_LED_STRIP_LENGTH);
+
+#if CFS_LED_STRIP_LENGTH > 0
+  lua_pushstring(L, "cfs");
+  lua_newtable(L);
+  lua_pushtableinteger(L, "first", BLING_LED_STRIP_LENGTH);
+  lua_pushtableinteger(L, "count", CFS_LED_STRIP_LENGTH);
+  lua_pushtableinteger(L, "perSwitch", CFS_LEDS_PER_SWITCH);
+  lua_settable(L, -3);
+#endif
+
+  lua_pushstring(L, "groups");
+  lua_newtable(L);
+  for (const LuaLedGroup* group = luaLedGroups; group->name; group++) {
+    lua_pushstring(L, group->name);
+    lua_newtable(L);
+    lua_pushtableinteger(L, "first", group->first);
+    lua_pushtableinteger(L, "count", group->count);
+    if (group->direction) {
+      lua_pushtableinteger(L, "startAngle", group->startAngle);
+      lua_pushtableinteger(L, "direction", group->direction);
+    }
+    lua_settable(L, -3);
+  }
+  lua_settable(L, -3);
+
   return 1;
 }
 #endif
@@ -3312,6 +3391,7 @@ LROT_BEGIN(etxlib, NULL, 0)
 #if (BLING_LED_STRIP_LENGTH > 0) || (CFS_LED_STRIP_LENGTH > 0)
   LROT_FUNCENTRY( setRGBLedColor, luaSetRgbLedColor )
   LROT_FUNCENTRY( applyRGBLedColors, luaApplyRGBLedColors )
+  LROT_FUNCENTRY( getRGBLedInfo, luaGetRGBLedInfo )
 #endif
 #if (CFS_LED_STRIP_LENGTH > 0)
   LROT_FUNCENTRY( setCFSLedColor, luaSetCFSLedColor )
@@ -3409,6 +3489,7 @@ LROT_BEGIN(etxcst, NULL, 0)
   LROT_NUMENTRY( FUNC_BACKLIGHT, FUNC_BACKLIGHT )
   LROT_NUMENTRY( FUNC_SCREENSHOT, FUNC_SCREENSHOT )
   LROT_NUMENTRY( FUNC_RACING_MODE, FUNC_RACING_MODE )
+  LROT_NUMENTRY( FUNC_RGB_LED, FUNC_RGB_LED )
 #if defined(FUNCTION_SWITCHES)
   LROT_NUMENTRY( FUNC_PUSH_CUST_SWITCH, FUNC_PUSH_CUST_SWITCH )
 #endif
@@ -3469,6 +3550,7 @@ LROT_BEGIN(etxcst, NULL, 0)
   LROT_NUMENTRY( TIMEHOUR, TIMEHOUR )
 #if (BLING_LED_STRIP_LENGTH > 0) || (CFS_LED_STRIP_LENGTH > 0)
   LROT_NUMENTRY( LED_STRIP_LENGTH, BLING_LED_STRIP_LENGTH + CFS_LED_STRIP_LENGTH )
+  LROT_NUMENTRY( BLING_LED_STRIP_LENGTH, BLING_LED_STRIP_LENGTH )
 #endif
   LROT_NUMENTRY( UNIT_RAW, UNIT_RAW )
   LROT_NUMENTRY( UNIT_VOLTS, UNIT_VOLTS )

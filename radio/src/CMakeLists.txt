@@ -1,7 +1,7 @@
 include(CMakeForceCompiler)
 include(Bitmaps)
 
-set(PCB_TYPES X9LITE X9LITES X7 XLITE XLITES X9D X9D+ X9E X10 X12S PL18 T15PRO T15H7 ST16 PA01 TX15 GX15 TX16SMK3 T22 V12 H17 V15)
+set(PCB_TYPES X9LITE X9LITES X7 XLITE XLITES X9D X9D+ X9E X10 X12S PL18 T15PRO T15H7 T18H7 ST16 PA01 TX15 GX15 TX16SMK3 T22 V12 H17 V15)
 set(RADIO_LANGUAGES CN CZ DA DE EN ES FI FR HE HU IT JP KO NL PL PT RU SE SK TW UA)
 set(TTS_LANGUAGES CN CZ DA DE EN ES FI FR HE HU IT JP KO NL PL PT RU SE SK TW UA)
 
@@ -90,6 +90,8 @@ elseif(PCB STREQUAL T15PRO)
   include(targets/t15pro/CMakeLists.txt)
 elseif(PCB STREQUAL T15H7)
   include(targets/t15h7/CMakeLists.txt)
+elseif(PCB STREQUAL T18H7)
+  include(targets/t18h7/CMakeLists.txt)
 elseif(PCB STREQUAL ST16)
   include(targets/st16/CMakeLists.txt)
   elseif(PCB STREQUAL C14)
@@ -143,6 +145,7 @@ AddHWGenTarget(${HW_DESC_JSON} yaml_inputs yaml_inputs.inc)
 AddHWGenTarget(${HW_DESC_JSON} lua_inputs lua_inputs.inc)
 AddHWGenTarget(${HW_DESC_JSON} lua_mixsrc lua_mixsrc.inc)
 AddHWGenTarget(${HW_DESC_JSON} lua_keys lua_keys.inc)
+AddHWGenTarget(${HW_DESC_JSON} lua_leds lua_leds.inc)
 
 AddHWGenTarget(${HW_DESC_JSON} stm32_keys stm32_keys.inc)
 AddHWGenTarget(${HW_DESC_JSON} stm32_switches stm32_switches.inc)
@@ -155,7 +158,7 @@ AddHWGenTarget(${HW_DESC_JSON} simu_switches simu_switches.inc)
 AddHWGenTarget(${HW_DESC_JSON} hal_keys_lock hal_keys_lock.h)
 AddHWGenTarget(${HW_DESC_JSON} hal_usb_descriptor usb_descriptor.h)
 
-add_dependencies(board hal_settings hal_pwm_sticks hal_keys hal_keys_lock hal_adc_inputs stm32_keys stm32_switches stm32_adc_inputs stm32_pwm_inputs yaml_inputs lua_inputs lua_mixsrc lua_keys)
+add_dependencies(board hal_settings hal_pwm_sticks hal_keys hal_keys_lock hal_adc_inputs stm32_keys stm32_switches stm32_adc_inputs stm32_pwm_inputs yaml_inputs lua_inputs lua_mixsrc lua_keys lua_leds)
 add_dependencies(board_bl hal_settings hal_pwm_sticks hal_keys stm32_keys)
 
 
@@ -613,7 +616,7 @@ if(NATIVE_BUILD)
   )
   add_dependencies(radiolib_native ${RADIO_DEPENDENCIES}
     hal_settings hal_pwm_sticks hal_keys hal_keys_lock hal_adc_inputs
-    yaml_inputs lua_inputs lua_mixsrc lua_keys)
+    yaml_inputs lua_inputs lua_mixsrc lua_keys lua_leds)
   set_property(TARGET radiolib_native PROPERTY POSITION_INDEPENDENT_CODE ON)
 
   add_subdirectory(targets/simu)

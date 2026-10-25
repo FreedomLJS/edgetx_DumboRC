@@ -308,6 +308,14 @@
 #define TR_VTELEMUNIT_28       "us"
 #define TR_VTELEMUNIT_29       "km"
 #define TR_VTELEMUNIT_30       "dBm"
+#define TR_VTELEMUNIT_31       ""
+#define TR_VTELEMUNIT_32       ""
+#define TR_VTELEMUNIT_33       ""
+#define TR_VTELEMUNIT_34       ""
+#define TR_VTELEMUNIT_35       ""
+#define TR_VTELEMUNIT_36       "h"
+#define TR_VTELEMUNIT_37       "min"
+#define TR_VTELEMUNIT_38       "s"
 
 #define TR_VTELEMSCREENTYPE_1  "Nada"
 #define TR_VTELEMSCREENTYPE_2  "Números"
@@ -771,6 +779,8 @@
 #define TR_SPECTRUM_ANALYSER_INT       "Espectro (INT)"
 #define TR_GHOST_MODULE_CONFIG         "Ghost module config"
 #define TR_GPS_MODEL_LOCATOR           "GPS model locator"
+#define TR_GPS_URI_STANDARD            "Standard"
+#define TR_GPS_URI_APPLE_MAPS          "Apple Maps"
 #define TR_REFRESH                     "Refresh"
 #define TR_SDCARD_FULL                 "SD Card llena"
 #define TR_SDCARD_FULL_EXT              TR_BW_COL(TR_SDCARD_FULL "\036Logs and " LCDW_128_LINEBREAK "Screenshots disabled", TR_SDCARD_FULL "\nLogs and Screenshots disabled")

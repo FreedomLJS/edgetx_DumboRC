@@ -312,6 +312,14 @@
 #define TR_VTELEMUNIT_28               "us"
 #define TR_VTELEMUNIT_29               "km"
 #define TR_VTELEMUNIT_30               "dBm"
+#define TR_VTELEMUNIT_31               ""
+#define TR_VTELEMUNIT_32               ""
+#define TR_VTELEMUNIT_33               ""
+#define TR_VTELEMUNIT_34               ""
+#define TR_VTELEMUNIT_35               ""
+#define TR_VTELEMUNIT_36               "h"
+#define TR_VTELEMUNIT_37               "min"
+#define TR_VTELEMUNIT_38               "s"
 
 #define TR_VTELEMSCREENTYPE_1          "ללא"
 #define TR_VTELEMSCREENTYPE_2          "מספרים"
@@ -780,6 +788,8 @@
 #define TR_SPECTRUM_ANALYSER_INT       "ספקטרום (פנימי)"
 #define TR_GHOST_MODULE_CONFIG         "הגדרות מודול Ghost"
 #define TR_GPS_MODEL_LOCATOR           "איתור מודל ב-GPS"
+#define TR_GPS_URI_STANDARD            "Standard"
+#define TR_GPS_URI_APPLE_MAPS          "Apple Maps"
 #define TR_REFRESH                     "רעננן"
 #define TR_SDCARD_FULL                 "הכרטיס מלא"
 #define TR_SDCARD_FULL_EXT             TR_BW_COL(TR_SDCARD_FULL "\036לוגים" LCDW_128_LINEBREAK "ושמירת צילומי מסך מושבתים", TR_SDCARD_FULL "\036לוגים ושמירת צילומי מסך מושבתים")

@@ -119,9 +119,10 @@
 #define SA16(s) s##_1, s##_2, s##_3, s##_4, s##_5, s##_6, s##_7, s##_8, s##_9, s##_10, s##_11, s##_12, s##_13, s##_14, s##_15, s##_16
 #define SA30(s) s##_1, s##_2, s##_3, s##_4, s##_5, s##_6, s##_7, s##_8, s##_9, s##_10, s##_11, s##_12, s##_13, s##_14, s##_15, s##_16, \
                 s##_17, s##_18, s##_19, s##_20, s##_21, s##_22, s##_23, s##_24, s##_25, s##_26, s##_27, s##_28, s##_29, s##_30
+#define SA38(s) SA30(s), s##_31, s##_32, s##_33, s##_34, s##_35, s##_36, s##_37, s##_38
 
 
-#define TR_VTELEMUNIT               SA30(TR_VTELEMUNIT)
+#define TR_VTELEMUNIT               SA38(TR_VTELEMUNIT)
 
 #define TR_FUNCSOUNDS               SA16(TR_FUNCSOUNDS)
 
@@ -146,6 +147,9 @@
 #define TR_VBEEPCOUNTDOWN           SA6(TR_VBEEPCOUNTDOWN)
 #define TR_VTMRMODES                SA6(TR_VTMRMODES)
 #define TR_VFSWRESET                SA6(TR_VFSWRESET)
+// App names left untranslated, except Apple's own localised one
+#define TR_GPS_URI_TYPES            TR_GPS_URI_STANDARD, "Android", "Google Maps", \
+                                    TR_GPS_URI_APPLE_MAPS, "CoMaps", "Guru Maps"
 
 #define TR_VBLMODE                  SA5(TR_VBLMODE)
 #if defined(FUNCTION_SWITCHES)

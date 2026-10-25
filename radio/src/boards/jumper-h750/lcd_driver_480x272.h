@@ -19,27 +19,19 @@
  * GNU General Public License for more details.
  */
 
-#include "hal/gpio.h"
-#include "hal/rgbleds.h"
-#include "stm32_gpio.h"
-#include "boards/generic_stm32/rgb_leds.h"
-#include "board.h"
+#pragma once
 
-#define GET_RED(color) (((color) & 0xFF0000) >>16)
-#define GET_GREEN(color) (((color) & 0x00FF00) >> 8)
-#define GET_BLUE(color) ((color) & 0x0000FF)
+// Timings for the 480x272 RGB panel, taken from the T18 (STM32F4) target.
+// These are already expressed as LTDC register values (accumulated, 0-based),
+// so they are programmed without further adjustment.
+#define HBP  ( 43 )
+#define VBP  ( 12 )
 
+#define HSW  ( 2 )
+#define VSH  ( 4 )
 
-void fsLedRGB(uint8_t index, uint32_t color)
-{
-  index = (index * 2) + CFS_LED_STRIP_START;
-  rgbSetLedColor(index, GET_RED(color), GET_GREEN(color),GET_BLUE(color));
-  rgbSetLedColor(index+1, GET_RED(color), GET_GREEN(color),GET_BLUE(color));
-  rgbLedColorApply();
-}
+#define HFP  ( 8 )
+#define VFP  ( 8 )
 
-uint32_t fsGetLedRGB(uint8_t index)
-{
-  return rgbGetLedColor((index * 2) + CFS_LED_STRIP_START);
-}
-
+#define LCD_NRST_HIGH()               LL_GPIO_SetOutputPin(LCD_NRST_GPIO, LCD_NRST_GPIO_PIN)
+#define LCD_NRST_LOW()                LL_GPIO_ResetOutputPin(LCD_NRST_GPIO, LCD_NRST_GPIO_PIN)

@@ -152,7 +152,7 @@ void checkValidMCU(void)
   #define TARGET_IDCODE   0x419
 #elif defined(STM32F413xx)
   #define TARGET_IDCODE   0x463
-#elif defined(STM32H750xx) || defined(STM32H747xx)
+#elif defined(STM32H750xx) || defined(STM32H747xx) || defined(STM32H743xx)
   #define TARGET_IDCODE   0x450
 #elif defined(STM32H7RS)
   #define TARGET_IDCODE   0x485
@@ -1160,6 +1160,16 @@ void checkTrims()
       // Determine Max and Min trim values based on Extended Trim setting
       int16_t tMax = g_model.extendedTrims ? TRIM_EXTENDED_MAX : TRIM_MAX;
       int16_t tMin = g_model.extendedTrims ? TRIM_EXTENDED_MIN : TRIM_MIN;
+
+      // With extended trims, also stop at the normal limit so that holding the
+      // trim does not run straight into the extended range. Releasing and
+      // pressing again continues. Only the normal trim beep is played here, as
+      // the min/max trim announcement is reserved for the extended limits.
+      if (g_model.extendedTrims &&
+          ((before < TRIM_MAX && after >= TRIM_MAX) ||
+           (before > TRIM_MIN && after <= TRIM_MIN))) {
+        killTrimEvents(event);
+      }
 
       // Play warning whe going past limits and remove any buffered trim moves
       if (before >= tMin && after <= tMin) {

@@ -269,6 +269,11 @@ target_link_libraries(${COMPANION_NAME} PRIVATE
   prefsedit
 )
 
+# Companion can hand off to the standalone simulator (--simulator)
+target_compile_definitions(${COMPANION_NAME} PRIVATE
+  SIMULATOR_EXE_NAME="${SIMULATOR_NAME}"
+)
+
 PrintTargetReport("${COMPANION_NAME}")
 
 ############# Standalone simulator ###############
@@ -338,9 +343,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(COMPANION_DESKTOP_FILE ${CMAKE_CURRENT_BINARY_DIR}/${COMPANION_NAME}.desktop)
   configure_file(${COMPANION_TARGETS_DIR}/companion.desktop.in ${COMPANION_DESKTOP_FILE} @ONLY)
 
-  set(SIMULATOR_DESKTOP_FILE ${CMAKE_CURRENT_BINARY_DIR}/${SIMULATOR_NAME}.desktop)
-  configure_file(${COMPANION_TARGETS_DIR}/simulator.desktop.in ${SIMULATOR_DESKTOP_FILE} @ONLY)
-
   # libsim*.so files
   install(DIRECTORY ${CMAKE_BINARY_DIR}/plugins/
           DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${COMPANION_NAME})
@@ -362,11 +364,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
   if(OPENSSL_FOUND)
     get_filename_component(OPENSSL_SSL_LIBRARY_DIR ${OPENSSL_SSL_LIBRARY} DIRECTORY)
-    install(DIRECTORY ${OPENSSL_SSL_LIBRARY_DIR}/
-            DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-            FILES_MATCHING
-              PATTERN "libcrypto.so.*"
-              PATTERN "libssl.so.*")
+    # Not install(DIRECTORY): it would recreate every subdir as an empty dir
+    file(GLOB OPENSSL_RUNTIME_LIBS
+         "${OPENSSL_SSL_LIBRARY_DIR}/libcrypto.so.*"
+         "${OPENSSL_SSL_LIBRARY_DIR}/libssl.so.*")
+    install(FILES ${OPENSSL_RUNTIME_LIBS}
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
   endif()
 
   set(OperatingSystem "Linux")
@@ -446,9 +449,18 @@ elseif(APPLE)
   set(companion_app_dir "${COMPANION_OSX_APP_BUNDLE_NAME}.app")
   set(companion_res_dir "${companion_app_dir}/Contents/Resources")
 
-  # Only Companion is distributed for macOS
   install(TARGETS ${COMPANION_NAME}
           BUNDLE DESTINATION . COMPONENT Runtime)
+
+  # The standalone simulator ships inside the Companion bundle as a plain executable,
+  # sharing its Qt frameworks, SDL and WASM modules
+  set_target_properties(${SIMULATOR_NAME} PROPERTIES
+      MACOSX_BUNDLE FALSE
+      INSTALL_RPATH "@executable_path/../Frameworks"
+      BUILD_WITH_INSTALL_RPATH TRUE
+  )
+  install(TARGETS ${SIMULATOR_NAME}
+          RUNTIME DESTINATION "${companion_app_dir}/Contents/MacOS" COMPONENT Runtime)
 
   # libsims
   install(DIRECTORY ${CMAKE_BINARY_DIR}/plugins/
@@ -559,6 +571,7 @@ elseif(APPLE)
     CONTENT "
       qt_deploy_runtime_dependencies(
         EXECUTABLE \"${companion_app_dir}\"
+        ADDITIONAL_EXECUTABLES \"${companion_app_dir}/Contents/MacOS/${SIMULATOR_NAME}\"
         NO_TRANSLATIONS
         NO_COMPILER_RUNTIME
         GENERATE_QT_CONF
