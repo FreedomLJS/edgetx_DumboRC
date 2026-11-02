@@ -3991,8 +3991,8 @@
     ]
   },
   {
-    "name": "Jumper T15 Pro",
-    "wasm": "edgetx-t15pro-simulator.wasm",
+    "name": "Jumper T15 H7",
+    "wasm": "edgetx-t15h7-simulator.wasm",
     "display": {
       "w": 480,
       "h": 320,
@@ -4142,8 +4142,8 @@
     ]
   },
   {
-    "name": "Jumper T15-H7",
-    "wasm": "edgetx-t15h7-simulator.wasm",
+    "name": "Jumper T15 Pro",
+    "wasm": "edgetx-t15pro-simulator.wasm",
     "display": {
       "w": 480,
       "h": 320,
@@ -4663,7 +4663,7 @@
     ]
   },
   {
-    "name": "Jumper T18H7",
+    "name": "Jumper T18 H7",
     "wasm": "edgetx-t18h7-simulator.wasm",
     "display": {
       "w": 480,

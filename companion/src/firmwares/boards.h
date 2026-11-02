@@ -255,6 +255,7 @@ namespace Board {
     HasRTC,
     HasSDCard,
     HasSwitchableJack,
+    HasTrainerJackCrossover,
     HasTrainerModuleCPPM,
     HasTrainerModuleSBUS,
     HasVBat,

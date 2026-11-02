@@ -802,11 +802,14 @@ PACK(struct ModelData {
   uint8_t   disableTelemetryWarning:1;
   uint8_t   showInstanceIds:1;
   uint8_t   checklistInteractive:1;
+  uint8_t   potsWarnMode:2 ENUM(PotsWarnMode);
+  NOBACKUP(uint8_t jitterFilter:2 ENUM(ModelOverridableEnable));
+  uint8_t   thrTrimSw:3;
+  NOBACKUP(uint8_t usbMode:3 ENUM(ModelUsbMode));
 #if defined(USE_HATS_AS_KEYS)
   NOBACKUP(uint8_t hatsMode:2 ENUM(HatsMode));
-  uint8_t   spare3:2 SKIP;  // padding to 8-bit aligment
 #else
-  uint8_t   spare3:4 SKIP;  // padding to 8-bit aligment
+  uint8_t   spare3:2 SKIP;  // padding to 8-bit aligment
 #endif
   int8_t    customThrottleWarningPosition;
   BeepANACenter beepANACenter;
@@ -837,11 +840,6 @@ PACK(struct ModelData {
   RssiAlarmData rssiAlarms;
 #endif
   NOBACKUP(RFAlarmData rfAlarms);
-
-  uint8_t thrTrimSw:3;
-  uint8_t potsWarnMode:2 ENUM(PotsWarnMode);
-  NOBACKUP(uint8_t jitterFilter:2 ENUM(ModelOverridableEnable));
-  uint8_t spare1:1 SKIP;
 
   ModuleData moduleData[NUM_MODULES];
   int16_t failsafeChannels[MAX_OUTPUT_CHANNELS];
@@ -929,6 +927,11 @@ PACK(struct ModelData {
   uint8_t modelSFDisabled:2 ENUM(ModelOverridableEnable);
   uint8_t modelCustomScriptsDisabled:2 ENUM(ModelOverridableEnable);
   uint8_t modelTelemetryDisabled:2 ENUM(ModelOverridableEnable);
+#if defined(COLORLCD)
+  uint8_t   spare1:2 SKIP;  // padding to 8-bit aligment
+#else
+  uint8_t   spare1:4 SKIP;  // padding to 8-bit aligment
+#endif
 
   SwitchConfig getSwitchType(uint8_t n);
   void setSwitchType(uint8_t n, SwitchConfig v);
@@ -1216,13 +1219,16 @@ PACK(struct RadioData {
   // Radio level tabs control (global settings)
   NOBACKUP(uint8_t modelSelectLayout:2);
   NOBACKUP(uint8_t radioThemesDisabled:1);
+  // 0 = trainer in/out on their own jack contacts (crossover lead, default),
+  // 1 = both on the tip (mono / straight lead). TRAINER_JACK_CROSSOVER only
+  NOBACKUP(uint8_t trainerTipOnly:1);
 #if defined(USB_CHARGE_CONTROL)
   // 0 = charge while USB active (default), 1 = hold the charger off while USB
   // is plugged in SD/Joystick/VCP mode
   NOBACKUP(uint8_t usbChargeDisabled:1);
-  NOBACKUP(uint8_t spare:6 SKIP);
+  NOBACKUP(uint8_t spare:5 SKIP);
 #else
-  NOBACKUP(uint8_t spare:7 SKIP);
+  NOBACKUP(uint8_t spare:6 SKIP);
 #endif
 #elif LCD_W == 128
   uint8_t invertLCD:1;          // Invert B&W LCD display
