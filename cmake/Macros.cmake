@@ -1,5 +1,14 @@
 find_package(Git)
 
+# Flag that silences author (formerly "dev") warnings in sub-builds. CMake 4.4
+# deprecated -Wno-dev in favour of -Wno-author, which older versions accept but
+# ignore, so the flag has to follow the running CMake version.
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.4)
+  set(NO_AUTHOR_WARNINGS_FLAG -Wno-author)
+else()
+  set(NO_AUTHOR_WARNINGS_FLAG -Wno-dev)
+endif()
+
 macro(git_id RESULT)
   set(${RESULT} 0)
   if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
@@ -105,17 +114,10 @@ function(AddHardwareDefTarget output)
   endforeach()
 
   set(GEN_HW_DEFS ${CMAKE_CXX_COMPILER} ${HW_DEF_ARGS} -x c++-header -E -dM ${HW_DEF_SRC})
-  # set(GEN_JSON ${PYTHON_EXECUTABLE} ${RADIO_DIRECTORY}/util/hw_defs/generate_hw_def.py)
-  # set(GEN_JSON ${GEN_JSON} -i defines -T ${FLAVOUR} -)
-
-  # add_custom_command(OUTPUT ${output}
-  #   COMMAND ${GEN_HW_DEFS} | ${GEN_JSON} > ${output}
-  #   DEPENDS ${HW_DEF_SRC} ${RADIO_DIRECTORY}/util/hw_defs/generate_hw_def.py
-  # )
 
   add_custom_command(OUTPUT ${output}.h
     COMMAND ${GEN_HW_DEFS} > ${output}.h
-    DEPENDS ${HW_DEF_SRC} ${HW_DEF_GENERATED} ${RADIO_DIRECTORY}/util/hw_defs/generate_hw_def.py
+    DEPENDS ${HW_DEF_SRC} ${HW_DEF_GENERATED}
   )
 endfunction()
 
@@ -171,8 +173,11 @@ function(CollectCommandLineArgs out_var)
       continue()
     endif()
     get_property(_help CACHE ${_var} PROPERTY HELPSTRING)
-    if(_help STREQUAL "No help, variable specified on the command line.")
-      get_property(_type CACHE ${_var} PROPERTY TYPE)
+    get_property(_type CACHE ${_var} PROPERTY TYPE)
+    # Untyped -D values are UNINITIALIZED. Check that as well as the help string,
+    # because CMake gives some built-in variables (e.g. CMAKE_PREFIX_PATH) their
+    # own help string even when they are set on the command line.
+    if(_help STREQUAL "No help, variable specified on the command line." OR _type STREQUAL "UNINITIALIZED")
       if(_type STREQUAL "UNINITIALIZED")
         set(_type)
       else()

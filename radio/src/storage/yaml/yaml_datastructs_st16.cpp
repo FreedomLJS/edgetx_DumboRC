@@ -565,13 +565,12 @@ static const struct YamlNode struct_MixData[] = {
 };
 static const struct YamlNode struct_LimitData[] = {
   YAML_IDX,
-  YAML_SIGNED_CUST( "min", 11, in_read_weight, in_write_weight ),
-  YAML_SIGNED_CUST( "max", 11, in_read_weight, in_write_weight ),
+  YAML_UNSIGNED_CUST( "min", 12, r_limitNumVal, w_limitNumVal ),
+  YAML_UNSIGNED_CUST( "max", 12, r_limitNumVal, w_limitNumVal ),
   YAML_SIGNED( "ppmCenter", 10 ),
-  YAML_SIGNED_CUST( "offset", 11, in_read_weight, in_write_weight ),
+  YAML_UNSIGNED_CUST( "offset", 12, r_limitNumVal, w_limitNumVal ),
   YAML_UNSIGNED( "symetrical", 1 ),
   YAML_UNSIGNED( "revert", 1 ),
-  YAML_PADDING( 3 ),
   YAML_SIGNED( "curve", 8 ),
   YAML_STRING("name", 6),
   YAML_END
@@ -844,8 +843,13 @@ static const struct YamlNode struct_anonymous_19[] = {
   YAML_PADDING( 16 ),
   YAML_END
 };
+static const struct YamlNode struct_CalcSensorSource[] = {
+  YAML_IDX,
+  YAML_SIGNED_CUST( "val", 8, r_calcSource, w_calcSource ),
+  YAML_END
+};
 static const struct YamlNode struct_anonymous_20[] = {
-  YAML_ARRAY("sources", 8, 4, struct_signed_8, NULL),
+  YAML_ARRAY("sources", 8, 4, struct_CalcSensorSource, NULL),
   YAML_END
 };
 static const struct YamlNode struct_anonymous_21[] = {

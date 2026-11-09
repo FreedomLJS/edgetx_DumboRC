@@ -13,8 +13,9 @@ project(EdgeTX-WASM NONE)  # NONE = no compiler check (we set a toolchain below)
 list(APPEND CMAKE_MODULE_PATH "${EDGETX_SOURCE_DIR}/cmake")
 
 # Collect command-line args to forward, excluding EDGETX_* (consumed here)
+# and SDL2_DIR (SDL2 is only used by the native simulator host, not the WASM module)
 include(Macros)
-CollectCommandLineArgs(_forwarded_args EXCLUDE "^EDGETX_")
+CollectCommandLineArgs(_forwarded_args EXCLUDE "^(EDGETX_|SDL2_DIR$)")
 
 # Fetch / find WASI SDK
 include(FetchWasiSDK)
@@ -28,7 +29,7 @@ ExternalProject_Add(wasm
   LIST_SEPARATOR |
   CMAKE_ARGS
     ${_forwarded_args}
-    -Wno-dev
+    ${NO_AUTHOR_WARNINGS_FLAG}
     -DCMAKE_BUILD_TYPE=${EDGETX_BUILD_TYPE}
     -DWASI_SDK_PREFIX=${WASI_SDK_PATH}
     -DCMAKE_TOOLCHAIN_FILE=${EDGETX_SOURCE_DIR}/cmake/toolchain/wasi-threads.cmake
