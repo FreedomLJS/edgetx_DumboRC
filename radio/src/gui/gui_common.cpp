@@ -124,7 +124,7 @@ bool isTelemetryFieldAvailable(int index)
 uint8_t getTelemetrySensorsCount()
 {
   uint8_t count = 0;
-  for (auto telemetrySensor : g_model.telemetrySensors) {
+  for (const auto& telemetrySensor : g_model.telemetrySensors) {
     if (telemetrySensor.isAvailable()) {
       ++count;
     }
@@ -228,6 +228,12 @@ static bool isSourceFuncSwitchAvailable(int source) {
 }
 #endif
 
+#if defined(IMU)
+static bool isSourceGForceAvailable(int) {
+  return imuHasGForce();
+}
+#endif
+
 static bool isSourceLSAvailable(int source) {
   LogicalSwitchData * cs = lswAddress(source);
   return (cs->func != LS_FUNC_NONE);
@@ -274,6 +280,7 @@ static struct sourceAvailableCheck sourceChecks[] = {
   { MIXSRC_FIRST_POT, MIXSRC_LAST_POT, SRC_POT, isSourcePotAvailable },
 #if defined(IMU)
   { MIXSRC_TILT_X, MIXSRC_TILT_Y, SRC_TILT, sourceIsAvailable },
+  { MIXSRC_G_FORCE, MIXSRC_G_FORCE, SRC_TILT, isSourceGForceAvailable },
 #endif
 #if defined(LUMINOSITY_SENSOR)
   { MIXSRC_LIGHT, MIXSRC_LIGHT, SRC_LIGHT, sourceIsAvailable },
@@ -829,7 +836,7 @@ void checkExternalAntenna()
 #if defined(INTMODULE_ANTSEL_GPIO) && !defined(SIMU)
     INTMODULE_ANTSEL_EXT();
     LED_ERROR_BEGIN();
-    RAISE_ALERT(STR_ANTENNACONFIRM1, STR_ANTENNACONFIRM2, STR_PRESS_ANY_KEY_TO_SKIP, AU_WARNING1);
+    RAISE_ALERT(STR_ANTENNACONFIRM1, STR_ANTENNACONFIRM2, STR_OK, AU_WARNING1);
 #endif
   } else if (g_eeGeneral.antennaMode == ANTENNA_MODE_PER_MODEL &&
              modelAntennaMode == ANTENNA_MODE_EXTERNAL) {
@@ -1474,7 +1481,11 @@ uint8_t MODULE_BIND_ROWS(int moduleIdx)
     else
       return 2;
   }
-  else if (isModuleXJTD8(moduleIdx) || isModuleSBUS(moduleIdx) || isModuleAFHDS3(moduleIdx) || isModuleDSMP(moduleIdx)) {
+  else if (isModuleAFHDS3(moduleIdx)) {
+    // Bind only: no receiver number, no range check
+    return 0;
+  }
+  else if (isModuleXJTD8(moduleIdx) || isModuleSBUS(moduleIdx) || isModuleDSMP(moduleIdx)) {
     return 1;
   }
   else if (isModulePPM(moduleIdx) || isModulePXX1(moduleIdx) || isModulePXX2(moduleIdx) || isModuleDSM2(moduleIdx)) {

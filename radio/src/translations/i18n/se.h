@@ -376,6 +376,7 @@
 
 #define TR_IMU_VSRCRAW_1                "TltX"
 #define TR_IMU_VSRCRAW_2                "TltY"
+#define TR_IMU_VSRCRAW_3             "Accl"
 
 #define TR_CYC_VSRCRAW_1                "CYK1"
 #define TR_CYC_VSRCRAW_2                "CYK2"
@@ -1063,11 +1064,9 @@
 #define TR_UNIT                         "Enhet"
 #define TR_TELEMETRY_NEWSENSOR          "Lägg till..."
 #define TR_CHANNELRANGE                 TR("Kanalomr.", "Kanalområde")
-#define TR_AFHDS3_RX_FREQ               TR("Rx frekv.", "Rx frekvens")
 #define TR_AFHDS3_ONE_TO_ONE_TELEMETRY  TR("Unicast/Tel.", "Unicast/Telemetri")
 #define TR_AFHDS3_ONE_TO_MANY           "Multicast"
 #define TR_AFHDS3_ACTUAL_POWER          TR("Act. pow", "Actual power")
-#define TR_AFHDS3_POWER_SOURCE          "Strömkälla"
 #define TR_IBUS2_SENSORS_MODE_ONLY      "Sensorerna kan endast ställas in i iBUS2-läge."
 #define TR_ANTENNACONFIRM1              "EXT. ANTENN"
 

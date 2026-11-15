@@ -70,6 +70,7 @@ namespace Board {
     BOARD_RADIOMASTER_TX16SMK3,
     BOARD_RADIOMASTER_TX15,
     BOARD_RADIOMASTER_GX15,
+    BOARD_RADIOMASTER_GX10,
     BOARD_JUMPER_T18,
     BOARD_JUMPER_T20,
     BOARD_RADIOMASTER_TX12,
@@ -643,6 +644,11 @@ inline bool IS_RADIOMASTER_GX15(Board::Type board)
   return board == Board::BOARD_RADIOMASTER_GX15;
 }
 
+inline bool IS_RADIOMASTER_GX10(Board::Type board)
+{
+  return board == Board::BOARD_RADIOMASTER_GX10;
+}
+
 inline bool IS_RADIOMASTER_TX12(Board::Type board)
 {
   return board == Board::BOARD_RADIOMASTER_TX12;
@@ -733,7 +739,8 @@ inline bool IS_FAMILY_T16(Board::Type board)
          board == Board::BOARD_RADIOMASTER_TX15 ||
          board == Board::BOARD_RADIOMASTER_GX15 ||
          board == Board::BOARD_RADIOMASTER_TX16S ||
-         board == Board::BOARD_RADIOMASTER_TX16SMK3||
+         board == Board::BOARD_RADIOMASTER_TX16SMK3 ||
+         board == Board::BOARD_RADIOMASTER_GX10 ||
          board == Board::BOARD_DUMBORC_DRO1;
 }
 

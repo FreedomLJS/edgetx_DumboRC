@@ -372,6 +372,7 @@
 
 #define TR_IMU_VSRCRAW_1             "TltX"
 #define TR_IMU_VSRCRAW_2             "TltY"
+#define TR_IMU_VSRCRAW_3             "Accl"
 
 #define TR_CYC_VSRCRAW_1     "CYC1"
 #define TR_CYC_VSRCRAW_2     "CYC2"
@@ -1057,11 +1058,9 @@
 #define TR_UNIT                "Unidad"
 #define TR_TELEMETRY_NEWSENSOR "Añadir sensor..."
 #define TR_CHANNELRANGE        "Canales"
-#define TR_AFHDS3_RX_FREQ              TR("RX freq.", "RX frequencia")
 #define TR_AFHDS3_ONE_TO_ONE_TELEMETRY TR("Unicast/Tel.", "Unicast/Telemetría")
 #define TR_AFHDS3_ONE_TO_MANY          "Multicast"
 #define TR_AFHDS3_ACTUAL_POWER         TR("Act. pow", "Actual power")
-#define TR_AFHDS3_POWER_SOURCE         TR("Power src.", "Power source")
 #define TR_IBUS2_SENSORS_MODE_ONLY     "Only in the iBUS2 mode can the sensors be set."
 #define TR_ANTENNACONFIRM1     "ANTENA EXT."
 #define TR_ANTENNA_MODES_1     "Interna"

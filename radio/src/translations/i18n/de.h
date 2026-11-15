@@ -375,6 +375,7 @@
 #define TR_ROTARY_ENC_OPT_5            "V-N E-I"
 #define TR_IMU_VSRCRAW_1               "NeigX"
 #define TR_IMU_VSRCRAW_2               "NeigY"
+#define TR_IMU_VSRCRAW_3             "Accl"
 
 #define TR_CYC_VSRCRAW_1               "CYC1"
 #define TR_CYC_VSRCRAW_2               "CYC2"
@@ -726,11 +727,9 @@
 #define TR_MULTI_SERVOFREQ             TR("Servo Rate", "Servo Update Rate")
 #define TR_MULTI_MAX_THROW             TR("Max. Weg", "Aktiviere Max. Weg")
 #define TR_MULTI_RFCHAN                TR("RF Channel", "Wähle RF Kanal")
-#define TR_AFHDS3_RX_FREQ              TR("RX Freq.", "Empfänger-Freq.")
 #define TR_AFHDS3_ONE_TO_ONE_TELEMETRY TR("Unicast/Tel.", "Unicast/Telemetrie")
 #define TR_AFHDS3_ONE_TO_MANY          "Multicast"
 #define TR_AFHDS3_ACTUAL_POWER         TR("Ist-Leist.", "Aktuelle Leistung")
-#define TR_AFHDS3_POWER_SOURCE         TR("Versorg.", "Spannungsquelle")
 #define TR_IBUS2_SENSORS_MODE_ONLY     "Only in the iBUS2 mode can the sensors be set."
 #define TR_GPS_COORDS_FORMAT           TR("GPS-Koord.", "GPS-Koordinaten-Format")
 #define TR_VARIO                       TR("Vario", "Variometer")
